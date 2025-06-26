@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HomeStock</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="dashboard-header">
+      <div class="title-section">
+        <span class="icon-circle">
+          <i class="fas fa-home"></i>
+        </span>
+        <div>
+          <h1>HomeStock</h1>
+          <span class="slogan">Your home, always stocked.</span>
+        </div>
+      </div>
+
+      <div class="theme-select">
+        <label for="theme">Theme:</label>
+        <select id="theme" onchange="setTheme(this.value)">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="blue">Blue</option>
+        </select>
+      </div>
+
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+
+    <section class="form-section">
+      <h2>Add New Item</h2>
+      <div class="user-details">
+        <div class="input-box voice-box">
+          <input id="itemName" type="text" placeholder="Item name" />
+          <button class="voice-btn" onclick="startVoiceInput('itemName')">
+            <i class="fas fa-microphone"></i>
+          </button>
+        </div>
+
+        <div class="input-box quantity-wrapper">
+          <input id="itemQty" type="number" placeholder="Quantity" />
+          <select id="itemQtyUnit">
+            <option value="piece">piece</option>
+            <option value="kg">kg</option>
+            <option value="gram">gram</option>
+            <option value="liter">liter</option>
+            <option value="ml">ml</option>
+          </select>
+        </div>
+
+        <div class="input-box">
+          <input id="itemLoc" type="text" placeholder="Location (e.g. Kitchen)" />
+        </div>
+
+        <div class="input-box quantity-wrapper">
+          <input id="itemUsage" type="number" placeholder="Usage duration" />
+          <select id="itemUsageUnit">
+            <option value="day">day</option>
+            <option value="month">month</option>
+            <option value="year">year</option>
+          </select>
+        </div>
+
+        <div class="input-box">
+          <input id="itemExpiry" type="date" placeholder="Expiry date" />
+        </div>
+      </div>
+
+      <div class="button">
+        <button onclick="addItem()">Add Item</button>
+      </div>
+    </section>
+
+    <section class="inventory-section">
+      <h2>My Inventory</h2>
+      <input id="search" onkeyup="searchItems()" placeholder="Search items..." class="search-bar" />
+      <div class="table-wrapper">
+        <table id="inventoryTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Usage</th>
+              <th>Expiry</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast">Toast message</div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

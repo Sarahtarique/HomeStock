@@ -13,7 +13,7 @@ const itemSchema = new mongoose.Schema({
   },
   quantityUnit: {
     type: String,
-    enum: ["g", "kg", "ml", "liter", "piece"],
+    enum: ["gram", "kg", "ml", "liter", "piece"],
     default: "piece"
   },
   location: {

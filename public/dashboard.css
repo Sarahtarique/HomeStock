@@ -319,6 +319,21 @@ html, body {
   font-weight: bold;
 }
 
+.status-cell.out {
+  font-weight: bold;
+  color: #e74c3c; /* Red */
+}
+
+.status-cell.low {
+  font-weight: bold;
+  color: #e67e22; /* Orange */
+}
+
+.status-cell.expiring {
+  font-weight: bold;
+  color: #d35400; /* Dark Orange */
+}
+
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;

@@ -90,6 +90,10 @@ async function addItem() {
 async function fetchItemsFromServer() {
   try {
     const res = await fetch("/items");
+    if (res.status === 401) {
+      window.location.href = "/login"; // 🔁 Redirect if session expired
+      return;
+    }
     const items = await res.json();
     renderTable(items);
   } catch (err) {
@@ -144,13 +148,14 @@ function renderTable(items) {
         alertNeeded = true;
       }
       if (willExpireSoon) {
-        const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+        const daysUntilExpiry = Math.ceil(
+          (expiryDate - today) / (1000 * 60 * 60 * 24)
+        );
         status += ` | ⏳ Expiring in ${daysUntilExpiry} day${daysUntilExpiry !== 1 ? "s" : ""}`;
         statusClass += " expiring";
         notifyUser(item.itemName, "expiring");
         alertNeeded = true;
       }
-
     }
 
     const row = document.createElement("tr");
@@ -206,8 +211,8 @@ function formatDaysLeft(days) {
   return days >= 365
     ? `${Math.floor(days / 365)} year(s)`
     : days >= 30
-      ? `${Math.floor(days / 30)} month(s)`
-      : `${days} day${days !== 1 ? "s" : ""}`;
+    ? `${Math.floor(days / 30)} month(s)`
+    : `${days} day${days !== 1 ? "s" : ""}`;
 }
 
 function notifyUser(itemName, status) {
@@ -247,6 +252,12 @@ function playAudioAlert() {
   new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
 }
 
-function logout() {
-  window.location.href = "/login";
+// ✅ Updated logout with fetch
+async function logout() {
+  try {
+    await fetch("/logout");
+    window.location.href = "/login";
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
 }

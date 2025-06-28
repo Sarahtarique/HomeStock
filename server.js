@@ -5,6 +5,7 @@ const path = require("path");
 const dotenv = require("dotenv");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const bcrypt = require("bcrypt");
 
 dotenv.config();
 const app = express();
@@ -48,7 +49,7 @@ const userSchema = new mongoose.Schema({
   username: String,
   email: String,
   phone: String,
-  password: String,
+  password: String, // Stored as a hashed string
   gender: String,
 });
 const User = mongoose.model("User", userSchema);
@@ -58,7 +59,7 @@ const itemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 0 },
   quantityUnit: {
     type: String,
-    enum: ["gram", "kg", "ml", "liter", "piece"], // ✅ gram is supported
+    enum: ["gram", "kg", "ml", "liter", "piece"],
     default: "piece",
   },
   location: { type: String, required: true },
@@ -86,10 +87,15 @@ app.get("/dashboard", requireLogin, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
 
-// ===== Auth Routes =====
+// ===== Register Route (with bcrypt) =====
 app.post("/register", async (req, res) => {
   try {
-    const user = new User(req.body);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const user = new User({
+      ...req.body,
+      password: hashedPassword,
+    });
+
     await user.save();
     res.send("<h2>✅ Registration successful</h2><a href='/login'>Login</a>");
   } catch (err) {
@@ -98,22 +104,35 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// ===== Login Route (with bcrypt) =====
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email, password });
-  if (user) {
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.send("<h2>❌ Invalid credentials</h2><a href='/login'>Try Again</a>");
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.send("<h2>❌ Invalid credentials</h2><a href='/login'>Try Again</a>");
+    }
+
     req.session.userId = user._id;
     res.redirect("/dashboard");
-  } else {
-    res.send("<h2>❌ Invalid credentials</h2><a href='/login'>Try Again</a>");
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).send("❌ Login failed");
   }
 });
 
+// ===== Logout Route =====
 app.get("/logout", (req, res) => {
   req.session.destroy(() => res.redirect("/login"));
 });
 
-// ===== Item Routes =====
+// ===== Add Item =====
 app.post("/add-item", async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ success: false });
 
@@ -127,11 +146,12 @@ app.post("/add-item", async (req, res) => {
     await item.save();
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ Item error:", err.message);
+    console.error("❌ Add item error:", err.message);
     res.status(500).json({ success: false });
   }
 });
 
+// ===== Get Items =====
 app.get("/items", async (req, res) => {
   if (!req.session.userId) return res.status(401).json([]);
   try {
@@ -143,6 +163,7 @@ app.get("/items", async (req, res) => {
   }
 });
 
+// ===== Delete Item =====
 app.delete("/delete-item/:id", async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ success: false });
   try {
